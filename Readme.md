@@ -55,7 +55,7 @@ If you wish to mirror other components, you need to do the following:
 - Create a `Component` (eg: `ForeignMirror`)
 - Implement the `Mirror` trait for that component.
 - Implement `From<&'a Foreign> for ForeignMirror`
-- Add `MirrorPlugin::<ForeignMirror, Foreign>::new()` to your `app`
+- Add `MirrorPlugin::<Foreign, ForeignMirror>::new()` to your `app`
 
 ```rust
 use bevy_mod_component_mirror::{Mirror, MirrorPlugin};
@@ -116,7 +116,7 @@ bevy_mod_component_mirror = { version = "<fill in>", default-features = false }
 
 | bevy | bevy_rapier3d | bevy_mod_component_mirror |
 |------|---------------|---------------------------|
-| 0.9  |        0.20.0 |                     0.2.0 |
+| 0.9  |        0.20.0 |                     0.2.1 |
 
 ## License
 

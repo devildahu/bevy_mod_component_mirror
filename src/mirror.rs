@@ -8,7 +8,7 @@ use bevy::{prelude::*, reflect::GetTypeRegistration};
 /// - Create a `Component` (eg: `ForeignMirror`)
 /// - Implement the `Mirror` trait for that component.
 /// - Implement `From<&'a Foreign> for ForeignMirror`
-/// - Add `MirrorPlugin::<ForeignMirror, Foreign>::new()` to your `app`
+/// - Add `MirrorPlugin::<Foreign, ForeignMirror>::new()` to your `app`
 ///
 /// ```rust
 /// use bevy_mod_component_mirror::{Mirror, MirrorPlugin};
