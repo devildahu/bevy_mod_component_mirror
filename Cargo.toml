@@ -6,9 +6,9 @@ license = "MIT OR Apache-2.0"
 readme = "Readme.md"
 keywords = ["bevy", "rapier", "bevy-inspector-egui"]
 categories = ["game-development"]
-repository = "https://github.com/nicopap/bevy_mod_component_mirror"
+repository = "https://github.com/devildahu/bevy_mod_component_mirror"
 exclude = ["assets", ".github"]
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 
 [features]

@@ -116,7 +116,7 @@ bevy_mod_component_mirror = { version = "<fill in>", default-features = false }
 
 | bevy | bevy_rapier3d | bevy_mod_component_mirror |
 |------|---------------|---------------------------|
-| 0.9  |        0.20.0 |                     0.1.0 |
+| 0.9  |        0.20.0 |                     0.2.0 |
 
 ## License
 
