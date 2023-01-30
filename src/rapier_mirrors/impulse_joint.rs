@@ -45,6 +45,7 @@ struct JointMotor {
     #[reflect(ignore)]
     pub max_force: Vec3,
 }
+type LimitsFun = fn(&JointLimits<f32>) -> f32;
 impl JointMotor {
     fn from_linear(joint: &GenericJoint) -> Option<Self> {
         let mk_vec3 = |f: fn(&RapierJointMotor) -> f32| {
@@ -54,7 +55,7 @@ impl JointMotor {
                 z: f(joint.motor(JointAxis::Z)?),
             })
         };
-        let mk_vec3_limit = |f: fn(&JointLimits<f32>) -> f32| Vec3 {
+        let mk_vec3_limit = |f: LimitsFun| Vec3 {
             x: joint.limits(JointAxis::X).map_or(0., f),
             y: joint.limits(JointAxis::Y).map_or(0., f),
             z: joint.limits(JointAxis::Z).map_or(0., f),
@@ -89,7 +90,7 @@ impl JointMotor {
                 z: f(joint.motor(JointAxis::AngZ)?),
             })
         };
-        let mk_vec3_limit = |f: fn(&JointLimits<f32>) -> f32| Vec3 {
+        let mk_vec3_limit = |f: LimitsFun| Vec3 {
             x: joint.limits(JointAxis::AngX).map_or(0., f),
             y: joint.limits(JointAxis::AngY).map_or(0., f),
             z: joint.limits(JointAxis::AngZ).map_or(0., f),
