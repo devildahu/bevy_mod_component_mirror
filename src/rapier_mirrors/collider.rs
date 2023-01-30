@@ -5,7 +5,10 @@ use bevy_rapier3d::{
         MassProperties as RapierMassProperties,
     },
     rapier::prelude::{RoundShape, Shape as RapierShape, SharedShape},
-    rapier::{parry::shape, prelude::TypedShape},
+    rapier::{
+        parry::shape,
+        prelude::{Isometry, TypedShape},
+    },
 };
 
 use crate::Mirror;
@@ -18,7 +21,50 @@ impl Default for ShapeHolder {
     }
 }
 
-#[derive(Clone, Reflect)]
+#[derive(Clone, Reflect, Default, Component, FromReflect)]
+#[reflect(Default)]
+pub(super) struct CompoundShapeElement {
+    offset: Vec3,
+    rotation: Quat,
+    shape: ColliderMirror,
+}
+
+#[derive(Clone, Reflect, Component, FromReflect)]
+#[reflect(Default)]
+pub struct Compound(Vec<CompoundShapeElement>);
+impl Default for Compound {
+    fn default() -> Self {
+        Self(vec![Default::default()])
+    }
+}
+impl Compound {
+    fn into_rapier(&self) -> Vec<(Isometry<f32>, SharedShape)> {
+        self.0
+            .iter()
+            .map(|mirror| {
+                (
+                    Isometry::from_parts(mirror.offset.into(), mirror.rotation.into()),
+                    (&mirror.shape).into(),
+                )
+            })
+            .collect()
+    }
+    fn from_rapier(elems: &[(Isometry<f32>, SharedShape)]) -> Self {
+        Self(
+            elems
+                .iter()
+                .map(|rapier| CompoundShapeElement {
+                    offset: rapier.0.translation.into(),
+                    rotation: rapier.0.rotation.into(),
+                    shape: (&rapier.1).into(),
+                })
+                .collect(),
+        )
+    }
+}
+
+#[derive(Clone, Reflect, FromReflect)]
+#[reflect(Default)]
 pub enum Shape {
     Ball { radius: f32 },
     Cuboid { half_extents: Vec3 },
@@ -29,16 +75,52 @@ pub enum Shape {
     // Polyline {},
     // HalfSpace { normal: Vec3 },
     // HeightField {},
-    // Compound( ),
+    Compound(Compound),
     // ConvexPolyhedron {},
     Cylinder { half_height: f32, radius: f32 },
     Cone { half_height: f32, radius: f32 },
     UnimplementedYet(#[reflect(ignore)] ShapeHolder),
 }
-#[derive(Clone, Reflect, Component)]
+impl Default for Shape {
+    fn default() -> Self {
+        Shape::Ball { radius: 0.5 }
+    }
+}
+#[derive(Clone, Reflect, Component, Default, FromReflect)]
+#[reflect(Default)]
 pub struct ColliderMirror {
     pub shape: Shape,
     pub shape_rounded: Option<f32>,
+}
+impl<'a> From<&'a SharedShape> for ColliderMirror {
+    fn from(value: &'a SharedShape) -> Self {
+        use TypedShape as R;
+        let shape_rounded = match value.as_typed_shape() {
+            R::Ball(_)
+            | R::Cuboid(_)
+            | R::Capsule(_)
+            | R::Segment(_)
+            | R::Triangle(_)
+            | R::TriMesh(_)
+            | R::Polyline(_)
+            | R::HalfSpace(_)
+            | R::HeightField(_)
+            | R::Compound(_)
+            | R::ConvexPolyhedron(_)
+            | R::Cylinder(_)
+            | R::Cone(_)
+            | R::Custom(_) => None,
+            R::RoundCuboid(v) => Some(v.border_radius),
+            R::RoundTriangle(v) => Some(v.border_radius),
+            R::RoundCylinder(v) => Some(v.border_radius),
+            R::RoundCone(v) => Some(v.border_radius),
+            R::RoundConvexPolyhedron(v) => Some(v.border_radius),
+        };
+        Self {
+            shape: value.into(),
+            shape_rounded,
+        }
+    }
 }
 impl<'a> From<&'a SharedShape> for Shape {
     fn from(value: &'a SharedShape) -> Self {
@@ -62,11 +144,11 @@ impl<'a> From<&'a SharedShape> for Shape {
                 b: v.b.into(),
                 c: v.c.into(),
             },
+            R::Compound(v) => Shape::Compound(Compound::from_rapier(v.shapes())),
             R::TriMesh(_)
             | R::Polyline(_)
             | R::HalfSpace(_)
             | R::HeightField(_)
-            | R::Compound(_)
             | R::ConvexPolyhedron(_)
             | R::RoundConvexPolyhedron(_)
             | R::Custom(_) => Shape::UnimplementedYet(ShapeHolder(value.clone())),
@@ -101,57 +183,32 @@ impl<'a> From<&'a SharedShape> for Shape {
 
 impl<'a> From<&'a Collider> for ColliderMirror {
     fn from(value: &'a Collider) -> Self {
-        use TypedShape as R;
-        let shape_rounded = match value.raw.as_typed_shape() {
-            R::Ball(_)
-            | R::Cuboid(_)
-            | R::Capsule(_)
-            | R::Segment(_)
-            | R::Triangle(_)
-            | R::TriMesh(_)
-            | R::Polyline(_)
-            | R::HalfSpace(_)
-            | R::HeightField(_)
-            | R::Compound(_)
-            | R::ConvexPolyhedron(_)
-            | R::Cylinder(_)
-            | R::Cone(_)
-            | R::Custom(_) => None,
-            R::RoundCuboid(v) => Some(v.border_radius),
-            R::RoundTriangle(v) => Some(v.border_radius),
-            R::RoundCylinder(v) => Some(v.border_radius),
-            R::RoundCone(v) => Some(v.border_radius),
-            R::RoundConvexPolyhedron(v) => Some(v.border_radius),
-        };
-        ColliderMirror {
-            shape: Shape::from(&value.raw),
-            shape_rounded,
-        }
+        Self::from(&value.raw)
     }
 }
-impl Mirror<Collider> for ColliderMirror {
-    fn apply(&self, val: &mut Collider) {
+impl<'a> From<&'a ColliderMirror> for SharedShape {
+    fn from(value: &'a ColliderMirror) -> Self {
         use Shape as S;
         macro_rules! set_shape {
             (@shape $shape:ident ( $($args:expr),* )) => {
                 shape::$shape::new($($args .into()),*)
             };
             (round $shape:ident $args:tt) => {{
-                let shape: Box<dyn RapierShape> = match self.shape_rounded {
+                let shape: Box<dyn RapierShape> = match value.shape_rounded {
                     Some(radius) => Box::new(RoundShape {
                         inner_shape:  set_shape!(@shape $shape $args),
                         border_radius: radius,
                     }),
                     None => Box::new(set_shape!(@shape $shape $args)),
                 };
-                val.raw = SharedShape(shape.into()).into();
+                SharedShape(shape.into()).into()
             }};
             ($shape:ident $args:tt) => {{
                 let shape: Box<dyn RapierShape> = Box::new(set_shape!(@shape $shape $args));
-                val.raw = SharedShape(shape.into()).into();
+                SharedShape(shape.into()).into()
             }}
         }
-        match self.shape {
+        match value.shape {
             S::Ball { radius } => set_shape!(Ball(radius)),
             S::Cuboid { half_extents } => set_shape!(round Cuboid(half_extents)),
             S::Capsule { a, b, radius } => set_shape!(Capsule(a, b, radius)),
@@ -166,8 +223,14 @@ impl Mirror<Collider> for ColliderMirror {
                 half_height,
                 radius,
             } => set_shape!(round Cone(half_height, radius)),
-            S::UnimplementedYet(ref shape) => val.raw = shape.0.clone(),
+            S::Compound(ref elems) => set_shape!(Compound(elems.into_rapier())),
+            S::UnimplementedYet(ref shape) => shape.0.clone(),
         }
+    }
+}
+impl Mirror<Collider> for ColliderMirror {
+    fn apply(&self, val: &mut Collider) {
+        val.raw = self.into();
     }
 }
 #[derive(Clone, Reflect, Debug, FromReflect)]

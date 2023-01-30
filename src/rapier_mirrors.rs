@@ -2,13 +2,18 @@ mod collider;
 mod impulse_joint;
 
 use crate::MirrorPlugin;
-use bevy::{app::PluginGroupBuilder, prelude::PluginGroup};
+use bevy::{
+    app::PluginGroupBuilder,
+    prelude::{Plugin, PluginGroup},
+};
 use bevy_rapier3d::prelude::{
     AdditionalMassProperties, Collider, ColliderMassProperties, ImpulseJoint,
 };
 
 pub use collider::{AdditionalMassPropertiesMirror, ColliderMassPropertiesMirror, ColliderMirror};
 pub use impulse_joint::ImpulseJointMirror;
+
+use self::collider::{Compound, CompoundShapeElement};
 
 pub type ImpulseJointMirrorPlugin = MirrorPlugin<ImpulseJoint, ImpulseJointMirror>;
 pub type ColliderMirrorPlugin = MirrorPlugin<Collider, ColliderMirror>;
@@ -34,10 +39,18 @@ pub type AdditionalMassPropertiesMirrorPlugin =
 /// syncs its value with it.
 ///
 /// - `ImpulseJoint`
-/// - `Collider` (**warning: some collider shape will panic!**)
+/// - `Collider` (**some collider shape are not implemented yet!**)
 /// - `ColliderMassProperties`
 /// - `AdditionalMassProperties`
 pub struct RapierMirrorsPlugins;
+
+struct AdditionalReflectionsPlugin;
+impl Plugin for AdditionalReflectionsPlugin {
+    fn build(&self, app: &mut bevy::prelude::App) {
+        app.register_type::<Compound>()
+            .register_type::<CompoundShapeElement>();
+    }
+}
 
 impl PluginGroup for RapierMirrorsPlugins {
     fn build(self) -> PluginGroupBuilder {
@@ -46,5 +59,6 @@ impl PluginGroup for RapierMirrorsPlugins {
             .add(ColliderMassPropertiesMirrorPlugin::new())
             .add(ColliderMirrorPlugin::new())
             .add(ImpulseJointMirrorPlugin::new())
+            .add(AdditionalReflectionsPlugin)
     }
 }
