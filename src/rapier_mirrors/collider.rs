@@ -10,7 +10,15 @@ use bevy_rapier3d::{
 
 use crate::Mirror;
 
-#[derive(Clone, Reflect, Debug)]
+#[derive(Clone)]
+pub struct ShapeHolder(SharedShape);
+impl Default for ShapeHolder {
+    fn default() -> Self {
+        ShapeHolder(SharedShape::ball(1.0))
+    }
+}
+
+#[derive(Clone, Reflect)]
 pub enum Shape {
     Ball { radius: f32 },
     Cuboid { half_extents: Vec3 },
@@ -21,43 +29,21 @@ pub enum Shape {
     // Polyline {},
     // HalfSpace { normal: Vec3 },
     // HeightField {},
-    // Compound {},
+    // Compound( ),
     // ConvexPolyhedron {},
     Cylinder { half_height: f32, radius: f32 },
     Cone { half_height: f32, radius: f32 },
-    // Custom {},
+    UnimplementedYet(#[reflect(ignore)] ShapeHolder),
 }
-#[derive(Clone, Reflect, Debug, Component)]
+#[derive(Clone, Reflect, Component)]
 pub struct ColliderMirror {
     pub shape: Shape,
     pub shape_rounded: Option<f32>,
 }
-
-impl<'a> From<&'a Collider> for ColliderMirror {
-    fn from(value: &'a Collider) -> Self {
+impl<'a> From<&'a SharedShape> for Shape {
+    fn from(value: &'a SharedShape) -> Self {
         use TypedShape as R;
-        let shape_rounded = match value.raw.as_typed_shape() {
-            R::Ball(_)
-            | R::Cuboid(_)
-            | R::Capsule(_)
-            | R::Segment(_)
-            | R::Triangle(_)
-            | R::TriMesh(_)
-            | R::Polyline(_)
-            | R::HalfSpace(_)
-            | R::HeightField(_)
-            | R::Compound(_)
-            | R::ConvexPolyhedron(_)
-            | R::Cylinder(_)
-            | R::Cone(_) => None,
-            R::RoundCuboid(v) => Some(v.border_radius),
-            R::RoundTriangle(v) => Some(v.border_radius),
-            R::RoundCylinder(v) => Some(v.border_radius),
-            R::RoundCone(v) => Some(v.border_radius),
-            R::RoundConvexPolyhedron(v) => Some(v.border_radius),
-            R::Custom(_) => None,
-        };
-        let shape = match value.raw.as_typed_shape() {
+        match value.as_typed_shape() {
             R::Ball(v) => Shape::Ball { radius: v.radius },
             R::Cuboid(v) => Shape::Cuboid {
                 half_extents: v.half_extents.into(),
@@ -76,12 +62,15 @@ impl<'a> From<&'a Collider> for ColliderMirror {
                 b: v.b.into(),
                 c: v.c.into(),
             },
-            R::TriMesh(_) => todo!(),
-            R::Polyline(_) => todo!(),
-            R::HalfSpace(_) => todo!(),
-            R::HeightField(_) => todo!(),
-            R::Compound(_) => todo!(),
-            R::ConvexPolyhedron(_) => todo!(),
+            R::TriMesh(_)
+            | R::Polyline(_)
+            | R::HalfSpace(_)
+            | R::HeightField(_)
+            | R::Compound(_)
+            | R::ConvexPolyhedron(_)
+            | R::RoundConvexPolyhedron(_)
+            | R::Custom(_) => Shape::UnimplementedYet(ShapeHolder(value.clone())),
+
             R::Cylinder(v) => Shape::Cylinder {
                 half_height: v.half_height,
                 radius: v.radius,
@@ -106,11 +95,36 @@ impl<'a> From<&'a Collider> for ColliderMirror {
                 half_height: v.inner_shape.half_height,
                 radius: v.inner_shape.radius,
             },
-            R::RoundConvexPolyhedron(_) => todo!(),
-            R::Custom(_) => todo!(),
+        }
+    }
+}
+
+impl<'a> From<&'a Collider> for ColliderMirror {
+    fn from(value: &'a Collider) -> Self {
+        use TypedShape as R;
+        let shape_rounded = match value.raw.as_typed_shape() {
+            R::Ball(_)
+            | R::Cuboid(_)
+            | R::Capsule(_)
+            | R::Segment(_)
+            | R::Triangle(_)
+            | R::TriMesh(_)
+            | R::Polyline(_)
+            | R::HalfSpace(_)
+            | R::HeightField(_)
+            | R::Compound(_)
+            | R::ConvexPolyhedron(_)
+            | R::Cylinder(_)
+            | R::Cone(_)
+            | R::Custom(_) => None,
+            R::RoundCuboid(v) => Some(v.border_radius),
+            R::RoundTriangle(v) => Some(v.border_radius),
+            R::RoundCylinder(v) => Some(v.border_radius),
+            R::RoundCone(v) => Some(v.border_radius),
+            R::RoundConvexPolyhedron(v) => Some(v.border_radius),
         };
         ColliderMirror {
-            shape,
+            shape: Shape::from(&value.raw),
             shape_rounded,
         }
     }
@@ -152,6 +166,7 @@ impl Mirror<Collider> for ColliderMirror {
                 half_height,
                 radius,
             } => set_shape!(round Cone(half_height, radius)),
+            S::UnimplementedYet(ref shape) => val.raw = shape.0.clone(),
         }
     }
 }

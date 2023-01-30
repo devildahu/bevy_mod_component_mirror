@@ -44,7 +44,7 @@ will automatically have an equivalent `XyzMirror` component that automatically
 syncs its value with it.
 
 - `ImpulseJoint`
-- `Collider` (**warning: some collider shape will panic!**)
+- `Collider` (**some collider shape are not implemented yet!**)
 - `ColliderMassProperties`
 - `AdditionalMassProperties`
 
@@ -116,7 +116,7 @@ bevy_mod_component_mirror = { version = "<fill in>", default-features = false }
 
 | bevy | bevy_rapier3d | bevy_mod_component_mirror |
 |------|---------------|---------------------------|
-| 0.9  |        0.20.0 |         <current version> |
+| 0.9  |        0.20.0 |       `<current version>` |
 
 ## License
 
