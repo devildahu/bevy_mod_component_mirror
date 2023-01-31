@@ -13,7 +13,10 @@ use bevy_rapier3d::prelude::{
 pub use collider::{AdditionalMassPropertiesMirror, ColliderMassPropertiesMirror, ColliderMirror};
 pub use impulse_joint::ImpulseJointMirror;
 
-use self::collider::{Compound, CompoundShapeElement};
+use self::{
+    collider::{Compound, CompoundShapeElement},
+    impulse_joint::{JointMotor, MotorModel},
+};
 
 pub type ImpulseJointMirrorPlugin = MirrorPlugin<ImpulseJoint, ImpulseJointMirror>;
 pub type ColliderMirrorPlugin = MirrorPlugin<Collider, ColliderMirror>;
@@ -48,6 +51,8 @@ struct AdditionalReflectionsPlugin;
 impl Plugin for AdditionalReflectionsPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.register_type::<Compound>()
+            .register_type::<JointMotor>()
+            .register_type::<MotorModel>()
             .register_type::<CompoundShapeElement>();
     }
 }

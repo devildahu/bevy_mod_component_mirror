@@ -12,7 +12,7 @@ use crate::Mirror;
 /// The spring-like model used for constraints resolution.
 #[derive(Reflect, FromReflect, Default)]
 #[reflect(Default)]
-enum MotorModel {
+pub(super) enum MotorModel {
     /// The solved spring-like equation is:
     /// `acceleration = stiffness * (pos - target_pos) + damping * (vel - target_vel)`
     AccelerationBased,
@@ -31,19 +31,19 @@ impl From<RapierMotorModel> for MotorModel {
 }
 #[derive(Reflect, FromReflect, Default)]
 #[reflect(Default)]
-struct JointMotor {
-    pub target_vel: Vec3,
-    pub target_pos: Vec3,
-    pub stiffness: Vec3,
-    pub damping: Vec3,
-    pub impulse: Vec3,
-    pub locked: BVec3,
-    pub limit_min: Vec3,
-    pub limit_max: Vec3,
-    pub limit_active: BVec3,
-    pub model: MotorModel,
+pub(super) struct JointMotor {
+    target_vel: Vec3,
+    target_pos: Vec3,
+    stiffness: Vec3,
+    damping: Vec3,
+    impulse: Vec3,
+    locked: BVec3,
+    limit_min: Vec3,
+    limit_max: Vec3,
+    limit_active: BVec3,
+    model: MotorModel,
     #[reflect(ignore)]
-    pub max_force: Vec3,
+    max_force: Vec3,
 }
 type LimitsFun = fn(&JointLimits<f32>) -> f32;
 impl JointMotor {

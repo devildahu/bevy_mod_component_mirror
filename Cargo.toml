@@ -8,7 +8,7 @@ keywords = ["bevy", "rapier", "bevy-inspector-egui"]
 categories = ["game-development"]
 repository = "https://github.com/devildahu/bevy_mod_component_mirror"
 exclude = ["assets", ".github"]
-version = "0.5.0"
+version = "0.6.0"
 edition = "2021"
 
 [features]
