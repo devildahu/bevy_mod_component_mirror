@@ -15,7 +15,7 @@ pub use impulse_joint::ImpulseJointMirror;
 
 use self::{
     collider::{Compound, CompoundShapeElement},
-    impulse_joint::{JointMotor, MotorModel},
+    impulse_joint::{Frame, JointMotor, MotorModel},
 };
 
 pub type ImpulseJointMirrorPlugin = MirrorPlugin<ImpulseJoint, ImpulseJointMirror>;
@@ -53,6 +53,7 @@ impl Plugin for AdditionalReflectionsPlugin {
         app.register_type::<Compound>()
             .register_type::<JointMotor>()
             .register_type::<MotorModel>()
+            .register_type::<Frame>()
             .register_type::<CompoundShapeElement>();
     }
 }

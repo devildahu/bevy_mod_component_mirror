@@ -31,6 +31,26 @@ impl From<RapierMotorModel> for MotorModel {
 }
 #[derive(Reflect, FromReflect, Default)]
 #[reflect(Default)]
+pub(super) struct Frame {
+    basis: Quat,
+    anchor: Vec3,
+}
+impl Frame {
+    fn from2(joint: &GenericJoint) -> Frame {
+        Frame {
+            basis: joint.local_basis2(),
+            anchor: joint.local_anchor2(),
+        }
+    }
+    fn from1(joint: &GenericJoint) -> Frame {
+        Frame {
+            basis: joint.local_basis1(),
+            anchor: joint.local_anchor1(),
+        }
+    }
+}
+#[derive(Reflect, FromReflect, Default)]
+#[reflect(Default)]
 pub(super) struct JointMotor {
     target_vel: Vec3,
     target_pos: Vec3,
@@ -125,6 +145,8 @@ pub struct ImpulseJointMirror {
     angular: Option<JointMotor>,
     linear: Option<JointMotor>,
     contacts: bool,
+    local_frame1: Frame,
+    local_frame2: Frame,
 }
 impl<'a> From<&'a ImpulseJoint> for ImpulseJointMirror {
     fn from(value: &'a ImpulseJoint) -> Self {
@@ -133,6 +155,8 @@ impl<'a> From<&'a ImpulseJoint> for ImpulseJointMirror {
             angular: JointMotor::from_angular(&value.data),
             linear: JointMotor::from_linear(&value.data),
             contacts: value.data.contacts_enabled(),
+            local_frame1: Frame::from1(&value.data),
+            local_frame2: Frame::from2(&value.data),
         }
     }
 }
@@ -156,6 +180,10 @@ impl Mirror<ImpulseJoint> for ImpulseJointMirror {
     fn apply(&self, val: &mut ImpulseJoint) {
         use JointAxis::*;
         val.parent = self.parent;
+        val.data.set_local_basis1(self.local_frame1.basis);
+        val.data.set_local_anchor1(self.local_frame1.anchor);
+        val.data.set_local_basis2(self.local_frame2.basis);
+        val.data.set_local_anchor2(self.local_frame2.anchor);
         for (i, joint, source) in [
             (0, X, &self.linear),
             (1, Y, &self.linear),
