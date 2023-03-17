@@ -81,7 +81,7 @@ fn reflect_mirror_component<T: Component, U: Mirror<T> + Component>(
 
 /// Systems added by the [`MirrorPlugin`].
 #[non_exhaustive]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, SystemLabel)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, SystemSet)]
 pub enum MirrorSystems {
     /// When the mirror component is updated, during [`CoreStage::First`].
     Update,
@@ -110,13 +110,15 @@ impl<T: Component, U: Mirror<T> + Component + GetTypeRegistration> MirrorPlugin<
 impl<T: Component, U: Mirror<T> + Component + GetTypeRegistration> Plugin for MirrorPlugin<T, U> {
     fn build(&self, app: &mut App) {
         app.register_type::<U>()
-            .add_system_to_stage(
-                CoreStage::Last,
-                reflect_mirror_add::<T, U>.label(MirrorSystems::Add),
+            .add_system(
+                reflect_mirror_add::<T, U>
+                    .in_set(MirrorSystems::Add)
+                    .in_base_set(CoreSet::Last),
             )
-            .add_system_to_stage(
-                CoreStage::First,
-                reflect_mirror_component::<T, U>.label(MirrorSystems::Update),
+            .add_system(
+                reflect_mirror_component::<T, U>
+                    .in_set(MirrorSystems::Update)
+                    .in_base_set(CoreSet::First),
             );
     }
 }
