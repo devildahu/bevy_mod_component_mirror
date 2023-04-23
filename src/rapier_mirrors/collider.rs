@@ -63,7 +63,7 @@ impl Compound {
     }
 }
 
-#[derive(Clone, Reflect, FromReflect)]
+#[derive(Clone, Reflect)]
 #[reflect(Default)]
 pub enum Shape {
     Ball { radius: f32 },
@@ -79,7 +79,14 @@ pub enum Shape {
     // ConvexPolyhedron {},
     Cylinder { half_height: f32, radius: f32 },
     Cone { half_height: f32, radius: f32 },
+
     UnimplementedYet(#[reflect(ignore)] ShapeHolder),
+}
+impl FromReflect for Shape {
+    fn from_reflect(reflect: &dyn Reflect) -> Option<Self> {
+        let reflected = reflect.downcast_ref::<Self>()?;
+        Some(reflected.clone())
+    }
 }
 impl Default for Shape {
     fn default() -> Self {
