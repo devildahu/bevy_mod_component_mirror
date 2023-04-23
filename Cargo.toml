@@ -7,8 +7,8 @@ readme = "Readme.md"
 keywords = ["bevy", "rapier", "bevy-inspector-egui"]
 categories = ["game-development"]
 repository = "https://github.com/devildahu/bevy_mod_component_mirror"
-exclude = ["assets", ".github"]
-version = "0.8.0"
+exclude = ["assets", ".github", "Makefile"]
+version = "0.9.0"
 edition = "2021"
 
 [features]
