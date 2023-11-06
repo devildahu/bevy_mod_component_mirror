@@ -1,4 +1,5 @@
 #![doc = include_str!("../Readme.md")]
+#![allow(clippy::wrong_self_convention)]
 
 mod mirror;
 

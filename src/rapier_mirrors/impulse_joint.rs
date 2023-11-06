@@ -10,7 +10,7 @@ use bevy_rapier3d::{
 use crate::Mirror;
 
 /// The spring-like model used for constraints resolution.
-#[derive(Reflect, FromReflect, Default)]
+#[derive(Reflect, Default)]
 #[reflect(Default)]
 pub(super) enum MotorModel {
     /// The solved spring-like equation is:
@@ -29,27 +29,27 @@ impl From<RapierMotorModel> for MotorModel {
         }
     }
 }
-#[derive(Reflect, FromReflect, Default)]
+#[derive(Reflect, Default)]
 #[reflect(Default)]
 pub(super) struct Frame {
     basis: Quat,
     anchor: Vec3,
 }
 impl Frame {
-    fn from2(joint: &GenericJoint) -> Frame {
-        Frame {
+    fn from2(joint: &GenericJoint) -> Self {
+        Self {
             basis: joint.local_basis2(),
             anchor: joint.local_anchor2(),
         }
     }
-    fn from1(joint: &GenericJoint) -> Frame {
-        Frame {
+    fn from1(joint: &GenericJoint) -> Self {
+        Self {
             basis: joint.local_basis1(),
             anchor: joint.local_anchor1(),
         }
     }
 }
-#[derive(Reflect, FromReflect, Default)]
+#[derive(Reflect, Default)]
 #[reflect(Default)]
 pub(super) struct JointMotor {
     target_vel: Vec3,
@@ -80,7 +80,7 @@ impl JointMotor {
             y: joint.limits(JointAxis::Y).map_or(0., f),
             z: joint.limits(JointAxis::Z).map_or(0., f),
         };
-        Some(JointMotor {
+        Some(Self {
             target_vel: mk_vec3(|m| m.target_vel)?,
             target_pos: mk_vec3(|m| m.target_pos)?,
             stiffness: mk_vec3(|m| m.stiffness)?,
@@ -115,7 +115,7 @@ impl JointMotor {
             y: joint.limits(JointAxis::AngY).map_or(0., f),
             z: joint.limits(JointAxis::AngZ).map_or(0., f),
         };
-        Some(JointMotor {
+        Some(Self {
             target_vel: mk_vec3(|m| m.target_vel)?,
             target_pos: mk_vec3(|m| m.target_pos)?,
             stiffness: mk_vec3(|m| m.stiffness)?,
@@ -150,7 +150,7 @@ pub struct ImpulseJointMirror {
 }
 impl<'a> From<&'a ImpulseJoint> for ImpulseJointMirror {
     fn from(value: &'a ImpulseJoint) -> Self {
-        ImpulseJointMirror {
+        Self {
             parent: value.parent,
             angular: JointMotor::from_angular(&value.data),
             linear: JointMotor::from_linear(&value.data),

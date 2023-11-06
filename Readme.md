@@ -23,7 +23,7 @@ to find the right physics parameters.
 
 ```toml
 [dependencies]
-bevy_mod_component_mirror = "<current version>"
+bevy_mod_component_mirror = "0.9.0"
 ```
 
 2. Add `RapierMirrorsPlugins` to your app
@@ -108,7 +108,7 @@ you can disable the rapier components with:
 
 ```toml
 [dependencies]
-bevy_mod_component_mirror = { version = "<fill in>", default-features = false }
+bevy_mod_component_mirror = { version = "0.9.0", default-features = false }
 ```
 
 ## Version matrix
@@ -116,12 +116,26 @@ bevy_mod_component_mirror = { version = "<fill in>", default-features = false }
 
 | bevy | bevy_rapier3d | bevy_mod_component_mirror |
 |------|---------------|---------------------------|
-| 0.10 |        0.21.0 |       `<current version>` |
-| 0.9  |        0.20.0 |       0.7 |
+| 0.11 | 0.22.0 | 0.9 |
+| 0.10 | 0.21.0 | 0.9 |
+| 0.9  | 0.20.0 | 0.7 |
 
 ## Change log
 
+* `0.10`: **BREAKING**: Bump to bevy 0.11 & rapier 0.22 (Thanks Naomijub on GitHub, See #3)
 * `0.9`: Fix a compilation error which source is currently unknown
+
+## Development
+
+Consider moving `.git/hooks/pre-commit.sample` to `.git/hooks/pre-commit.sample`, and
+adding the following lines **before** the last `exec` one:
+
+```sh
+if ! make pre-hook ; then
+  echo Error: Some pre-commit checks did not pass!
+  exit 1
+fi
+```
 
 ## License
 

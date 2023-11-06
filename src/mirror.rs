@@ -83,16 +83,16 @@ fn reflect_mirror_component<T: Component, U: Mirror<T> + Component>(
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, SystemSet)]
 pub enum MirrorSystems {
-    /// When the mirror component is updated, during [`CoreStage::First`].
+    /// When the mirror component is updated, during [`First`].
     Update,
     /// When mirror components get added to entites with the component they
-    /// mirror (if not already present), in [`CoreStage::Last`].
+    /// mirror (if not already present), in [`Last`].
     Add,
 }
 /// Update each frame [`Component`] `U` with the value of `T` and vis-versa.
 ///
 /// This will add `U` to [`Entity`] with the `T` components, and keep it updated,
-/// in [`MirrorSystems::Update`], in [`CoreStage::First`].
+/// in [`MirrorSystems::Update`], in [`First`].
 ///
 /// It will also add `T` to the type registry.
 ///
@@ -103,22 +103,24 @@ pub struct MirrorPlugin<T: Component, U: Mirror<T> + Component + GetTypeRegistra
     PhantomData<(T, U)>,
 );
 impl<T: Component, U: Mirror<T> + Component + GetTypeRegistration> MirrorPlugin<T, U> {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self(PhantomData)
     }
 }
+
+impl<T: Component, U: Mirror<T> + Component + GetTypeRegistration> Default for MirrorPlugin<T, U> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<T: Component, U: Mirror<T> + Component + GetTypeRegistration> Plugin for MirrorPlugin<T, U> {
     fn build(&self, app: &mut App) {
         app.register_type::<U>()
-            .add_system(
-                reflect_mirror_add::<T, U>
-                    .in_set(MirrorSystems::Add)
-                    .in_base_set(CoreSet::Last),
-            )
-            .add_system(
-                reflect_mirror_component::<T, U>
-                    .in_set(MirrorSystems::Update)
-                    .in_base_set(CoreSet::First),
+            .add_systems(Last, reflect_mirror_add::<T, U>.in_set(MirrorSystems::Add))
+            .add_systems(
+                First,
+                reflect_mirror_component::<T, U>.in_set(MirrorSystems::Update),
             );
     }
 }
