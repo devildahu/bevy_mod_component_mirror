@@ -116,11 +116,13 @@ bevy_mod_component_mirror = { version = "<fill in>", default-features = false }
 
 | bevy | bevy_rapier3d | bevy_mod_component_mirror |
 |------|---------------|---------------------------|
-| 0.10 |        0.21.0 |       `<current version>` |
-| 0.9  |        0.20.0 |       0.7 |
+| 0.11 |        0.22.0 |           0.10 |
+| 0.10 |        0.21.0 |       0.8, 0.9 |
+| 0.9  |        0.20.0 |            0.7 |
 
 ## Change log
 
+* `0.10`: Migrates bevy to version 0.11
 * `0.9`: Fix a compilation error which source is currently unknown
 
 ## License
