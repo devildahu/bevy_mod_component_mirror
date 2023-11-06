@@ -17,11 +17,11 @@ use crate::Mirror;
 pub struct ShapeHolder(SharedShape);
 impl Default for ShapeHolder {
     fn default() -> Self {
-        ShapeHolder(SharedShape::ball(1.0))
+        Self(SharedShape::ball(1.0))
     }
 }
 
-#[derive(Clone, Reflect, Default, Component, FromReflect)]
+#[derive(Clone, Reflect, Default, Component)]
 #[reflect(Default)]
 pub(super) struct CompoundShapeElement {
     offset: Vec3,
@@ -29,7 +29,7 @@ pub(super) struct CompoundShapeElement {
     shape: ColliderMirror,
 }
 
-#[derive(Clone, Reflect, Component, FromReflect)]
+#[derive(Clone, Reflect, Component)]
 #[reflect(Default)]
 pub struct Compound(Vec<CompoundShapeElement>);
 impl Default for Compound {
@@ -65,35 +65,62 @@ impl Compound {
 
 #[derive(Clone, Reflect)]
 #[reflect(Default)]
+#[reflect(from_reflect = false)]
 pub enum Shape {
-    Ball { radius: f32 },
-    Cuboid { half_extents: Vec3 },
-    Capsule { a: Vec3, b: Vec3, radius: f32 },
-    Segment { a: Vec3, b: Vec3 },
-    Triangle { a: Vec3, b: Vec3, c: Vec3 },
+    Ball {
+        radius: f32,
+    },
+    #[reflect(default)]
+    Cuboid {
+        half_extents: Vec3,
+    },
+    Capsule {
+        a: Vec3,
+        b: Vec3,
+        radius: f32,
+    },
+    Segment {
+        a: Vec3,
+        b: Vec3,
+    },
+    Triangle {
+        a: Vec3,
+        b: Vec3,
+        c: Vec3,
+    },
     // TriMesh {},
     // Polyline {},
     // HalfSpace { normal: Vec3 },
     // HeightField {},
     Compound(Compound),
     // ConvexPolyhedron {},
-    Cylinder { half_height: f32, radius: f32 },
-    Cone { half_height: f32, radius: f32 },
+    Cylinder {
+        half_height: f32,
+        radius: f32,
+    },
+    Cone {
+        half_height: f32,
+        radius: f32,
+    },
 
     UnimplementedYet(#[reflect(ignore)] ShapeHolder),
 }
+
 impl FromReflect for Shape {
     fn from_reflect(reflect: &dyn Reflect) -> Option<Self> {
         let reflected = reflect.downcast_ref::<Self>()?;
         Some(reflected.clone())
     }
 }
+
 impl Default for Shape {
     fn default() -> Self {
-        Shape::Ball { radius: 0.5 }
+        Self::Cuboid {
+            half_extents: Vec3::ONE,
+        }
     }
 }
-#[derive(Clone, Reflect, Component, Default, FromReflect)]
+#[derive(Clone, Reflect, Component, Default)]
 #[reflect(Default)]
 pub struct ColliderMirror {
     pub shape: Shape,
@@ -133,54 +160,54 @@ impl<'a> From<&'a SharedShape> for Shape {
     fn from(value: &'a SharedShape) -> Self {
         use TypedShape as R;
         match value.as_typed_shape() {
-            R::Ball(v) => Shape::Ball { radius: v.radius },
-            R::Cuboid(v) => Shape::Cuboid {
+            R::Ball(v) => Self::Ball { radius: v.radius },
+            R::Cuboid(v) => Self::Cuboid {
                 half_extents: v.half_extents.into(),
             },
-            R::Capsule(v) => Shape::Capsule {
+            R::Capsule(v) => Self::Capsule {
                 a: v.segment.a.into(),
                 b: v.segment.b.into(),
                 radius: v.radius,
             },
-            R::Segment(v) => Shape::Segment {
+            R::Segment(v) => Self::Segment {
                 a: v.a.into(),
                 b: v.b.into(),
             },
-            R::Triangle(v) => Shape::Triangle {
+            R::Triangle(v) => Self::Triangle {
                 a: v.a.into(),
                 b: v.b.into(),
                 c: v.c.into(),
             },
-            R::Compound(v) => Shape::Compound(Compound::from_rapier(v.shapes())),
+            R::Compound(v) => Self::Compound(Compound::from_rapier(v.shapes())),
             R::TriMesh(_)
             | R::Polyline(_)
             | R::HalfSpace(_)
             | R::HeightField(_)
             | R::ConvexPolyhedron(_)
             | R::RoundConvexPolyhedron(_)
-            | R::Custom(_) => Shape::UnimplementedYet(ShapeHolder(value.clone())),
+            | R::Custom(_) => Self::UnimplementedYet(ShapeHolder(value.clone())),
 
-            R::Cylinder(v) => Shape::Cylinder {
+            R::Cylinder(v) => Self::Cylinder {
                 half_height: v.half_height,
                 radius: v.radius,
             },
-            R::Cone(v) => Shape::Cone {
+            R::Cone(v) => Self::Cone {
                 half_height: v.half_height,
                 radius: v.radius,
             },
-            R::RoundCuboid(v) => Shape::Cuboid {
+            R::RoundCuboid(v) => Self::Cuboid {
                 half_extents: v.inner_shape.half_extents.into(),
             },
-            R::RoundTriangle(v) => Shape::Triangle {
+            R::RoundTriangle(v) => Self::Triangle {
                 a: v.inner_shape.a.into(),
                 b: v.inner_shape.b.into(),
                 c: v.inner_shape.c.into(),
             },
-            R::RoundCylinder(v) => Shape::Cylinder {
+            R::RoundCylinder(v) => Self::Cylinder {
                 half_height: v.inner_shape.half_height,
                 radius: v.inner_shape.radius,
             },
-            R::RoundCone(v) => Shape::Cone {
+            R::RoundCone(v) => Self::Cone {
                 half_height: v.inner_shape.half_height,
                 radius: v.inner_shape.radius,
             },
@@ -208,11 +235,11 @@ impl<'a> From<&'a ColliderMirror> for SharedShape {
                     }),
                     None => Box::new(set_shape!(@shape $shape $args)),
                 };
-                SharedShape(shape.into()).into()
+                Self(shape.into()).into()
             }};
             ($shape:ident $args:tt) => {{
                 let shape: Box<dyn RapierShape> = Box::new(set_shape!(@shape $shape $args));
-                SharedShape(shape.into()).into()
+                Self(shape.into()).into()
             }}
         }
         match value.shape {
@@ -240,15 +267,16 @@ impl Mirror<Collider> for ColliderMirror {
         val.raw = self.into();
     }
 }
-#[derive(Clone, Reflect, Debug, FromReflect)]
+#[derive(Clone, Reflect, Debug)]
 pub struct MassProps {
     pub local_center_of_mass: Vec3,
     pub mass: f32,
     pub principal_inertia: Vec3,
     pub inertia_local_frame: Quat,
 }
+
 impl MassProps {
-    fn into_rapier(&self) -> RapierMassProperties {
+    const fn into_rapier(&self) -> RapierMassProperties {
         RapierMassProperties {
             local_center_of_mass: self.local_center_of_mass,
             mass: self.mass,
@@ -272,7 +300,7 @@ pub enum ColliderMassPropertiesMirror {
 
 impl<'a> From<&'a RapierMassProperties> for MassProps {
     fn from(value: &'a RapierMassProperties) -> Self {
-        MassProps {
+        Self {
             local_center_of_mass: value.local_center_of_mass,
             mass: value.mass,
             principal_inertia: value.principal_inertia,
@@ -283,42 +311,38 @@ impl<'a> From<&'a RapierMassProperties> for MassProps {
 impl<'a> From<&'a AdditionalMassProperties> for AdditionalMassPropertiesMirror {
     fn from(value: &'a AdditionalMassProperties) -> Self {
         use AdditionalMassProperties as Rapier;
-        use AdditionalMassPropertiesMirror as Mirror;
         match value {
-            Rapier::Mass(mass) => Mirror::Mass(*mass),
-            Rapier::MassProperties(props) => Mirror::Props(props.into()),
+            Rapier::Mass(mass) => Self::Mass(*mass),
+            Rapier::MassProperties(props) => Self::Props(props.into()),
         }
     }
 }
 impl<'a> From<&'a ColliderMassProperties> for ColliderMassPropertiesMirror {
     fn from(value: &'a ColliderMassProperties) -> Self {
         use ColliderMassProperties as Rapier;
-        use ColliderMassPropertiesMirror as Mirror;
         match value {
-            Rapier::Density(value) => Mirror::Density(*value),
-            Rapier::Mass(value) => Mirror::Mass(*value),
-            Rapier::MassProperties(value) => Mirror::Props(value.into()),
+            Rapier::Density(value) => Self::Density(*value),
+            Rapier::Mass(value) => Self::Mass(*value),
+            Rapier::MassProperties(value) => Self::Props(value.into()),
         }
     }
 }
 impl Mirror<AdditionalMassProperties> for AdditionalMassPropertiesMirror {
     fn apply(&self, val: &mut AdditionalMassProperties) {
         use AdditionalMassProperties as Rapier;
-        use AdditionalMassPropertiesMirror as Mirror;
         *val = match self {
-            Mirror::Mass(value) => Rapier::Mass(*value),
-            Mirror::Props(value) => Rapier::MassProperties(value.into_rapier()),
+            Self::Mass(value) => Rapier::Mass(*value),
+            Self::Props(value) => Rapier::MassProperties(value.into_rapier()),
         };
     }
 }
 impl Mirror<ColliderMassProperties> for ColliderMassPropertiesMirror {
     fn apply(&self, val: &mut ColliderMassProperties) {
         use ColliderMassProperties as Rapier;
-        use ColliderMassPropertiesMirror as Mirror;
         *val = match self {
-            Mirror::Density(value) => Rapier::Density(*value),
-            Mirror::Mass(value) => Rapier::Mass(*value),
-            Mirror::Props(value) => Rapier::MassProperties(value.into_rapier()),
+            Self::Density(value) => Rapier::Density(*value),
+            Self::Mass(value) => Rapier::Mass(*value),
+            Self::Props(value) => Rapier::MassProperties(value.into_rapier()),
         };
     }
 }

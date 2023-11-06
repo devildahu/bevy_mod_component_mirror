@@ -103,22 +103,24 @@ pub struct MirrorPlugin<T: Component, U: Mirror<T> + Component + GetTypeRegistra
     PhantomData<(T, U)>,
 );
 impl<T: Component, U: Mirror<T> + Component + GetTypeRegistration> MirrorPlugin<T, U> {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self(PhantomData)
     }
 }
+
+impl<T: Component, U: Mirror<T> + Component + GetTypeRegistration> Default for MirrorPlugin<T, U> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<T: Component, U: Mirror<T> + Component + GetTypeRegistration> Plugin for MirrorPlugin<T, U> {
     fn build(&self, app: &mut App) {
         app.register_type::<U>()
-            .add_system(
-                reflect_mirror_add::<T, U>
-                    .in_set(MirrorSystems::Add)
-                    .in_base_set(CoreSet::Last),
-            )
-            .add_system(
-                reflect_mirror_component::<T, U>
-                    .in_set(MirrorSystems::Update)
-                    .in_base_set(CoreSet::First),
+            .add_systems(Last, reflect_mirror_add::<T, U>.in_set(MirrorSystems::Add))
+            .add_systems(
+                First,
+                reflect_mirror_component::<T, U>.in_set(MirrorSystems::Update),
             );
     }
 }
