@@ -23,7 +23,7 @@ to find the right physics parameters.
 
 ```toml
 [dependencies]
-bevy_mod_component_mirror = "0.11.0"
+bevy_mod_component_mirror = "0.12.0"
 ```
 
 2. Add `RapierMirrorsPlugins` to your app
@@ -106,7 +106,7 @@ you can disable the rapier components with:
 
 ```toml
 [dependencies]
-bevy_mod_component_mirror = { version = "0.11.0", default-features = false }
+bevy_mod_component_mirror = { version = "0.12.0", default-features = false }
 ```
 
 ## Version matrix
@@ -114,13 +114,14 @@ bevy_mod_component_mirror = { version = "0.11.0", default-features = false }
 
 | bevy | bevy_rapier3d | bevy_mod_component_mirror |
 |------|---------------|---------------------------|
-| 0.12 | 0.23.0 | 0.11.0 |
+| 0.12 | 0.23.0 | 0.11.0, 0.12.0 |
 | 0.11 | 0.22.0 | 0.10.0 |
 | 0.10 | 0.21.0 | 0.9 |
 | 0.9  | 0.20.0 | 0.7 |
 
 ## Change log
 
+* `0.12`: **BREAKING**: Removes Components that Bevy Rapier already reflects (ColliderMassProperties, AdditionalMassProperties, MassProperties)
 * `0.11`: **BREAKING**: Bump to bevy 0.12 & rapier 0.23
 * `0.10`: **BREAKING**: Bump to bevy 0.11 & rapier 0.22 (Thanks Naomijub on GitHub, See #3)
 * `0.9`: Fix a compilation error which source is currently unknown
