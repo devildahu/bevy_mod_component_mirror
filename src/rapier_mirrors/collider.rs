@@ -1,9 +1,6 @@
 use bevy::prelude::*;
 use bevy_rapier3d::{
-    prelude::{
-        AdditionalMassProperties, Collider, ColliderMassProperties,
-        MassProperties as RapierMassProperties,
-    },
+    prelude::Collider,
     rapier::prelude::{RoundShape, Shape as RapierShape, SharedShape},
     rapier::{
         parry::shape,
@@ -265,84 +262,5 @@ impl<'a> From<&'a ColliderMirror> for SharedShape {
 impl Mirror<Collider> for ColliderMirror {
     fn apply(&self, val: &mut Collider) {
         val.raw = self.into();
-    }
-}
-#[derive(Clone, Reflect, Debug)]
-pub struct MassProps {
-    pub local_center_of_mass: Vec3,
-    pub mass: f32,
-    pub principal_inertia: Vec3,
-    pub inertia_local_frame: Quat,
-}
-
-impl MassProps {
-    const fn into_rapier(&self) -> RapierMassProperties {
-        RapierMassProperties {
-            local_center_of_mass: self.local_center_of_mass,
-            mass: self.mass,
-            principal_inertia_local_frame: self.inertia_local_frame,
-            principal_inertia: self.principal_inertia,
-        }
-    }
-}
-#[derive(Clone, Reflect, Debug, Component)]
-pub enum AdditionalMassPropertiesMirror {
-    Mass(f32),
-    Props(MassProps),
-}
-
-#[derive(Clone, Reflect, Debug, Component)]
-pub enum ColliderMassPropertiesMirror {
-    Density(f32),
-    Mass(f32),
-    Props(MassProps),
-}
-
-impl<'a> From<&'a RapierMassProperties> for MassProps {
-    fn from(value: &'a RapierMassProperties) -> Self {
-        Self {
-            local_center_of_mass: value.local_center_of_mass,
-            mass: value.mass,
-            principal_inertia: value.principal_inertia,
-            inertia_local_frame: value.principal_inertia_local_frame,
-        }
-    }
-}
-impl<'a> From<&'a AdditionalMassProperties> for AdditionalMassPropertiesMirror {
-    fn from(value: &'a AdditionalMassProperties) -> Self {
-        use AdditionalMassProperties as Rapier;
-        match value {
-            Rapier::Mass(mass) => Self::Mass(*mass),
-            Rapier::MassProperties(props) => Self::Props(props.into()),
-        }
-    }
-}
-impl<'a> From<&'a ColliderMassProperties> for ColliderMassPropertiesMirror {
-    fn from(value: &'a ColliderMassProperties) -> Self {
-        use ColliderMassProperties as Rapier;
-        match value {
-            Rapier::Density(value) => Self::Density(*value),
-            Rapier::Mass(value) => Self::Mass(*value),
-            Rapier::MassProperties(value) => Self::Props(value.into()),
-        }
-    }
-}
-impl Mirror<AdditionalMassProperties> for AdditionalMassPropertiesMirror {
-    fn apply(&self, val: &mut AdditionalMassProperties) {
-        use AdditionalMassProperties as Rapier;
-        *val = match self {
-            Self::Mass(value) => Rapier::Mass(*value),
-            Self::Props(value) => Rapier::MassProperties(value.into_rapier()),
-        };
-    }
-}
-impl Mirror<ColliderMassProperties> for ColliderMassPropertiesMirror {
-    fn apply(&self, val: &mut ColliderMassProperties) {
-        use ColliderMassProperties as Rapier;
-        *val = match self {
-            Self::Density(value) => Rapier::Density(*value),
-            Self::Mass(value) => Rapier::Mass(*value),
-            Self::Props(value) => Rapier::MassProperties(value.into_rapier()),
-        };
     }
 }
