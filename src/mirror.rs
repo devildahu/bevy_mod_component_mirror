@@ -43,7 +43,7 @@ use bevy::{prelude::*, reflect::GetTypeRegistration};
 ///
 /// fn main() {
 ///   let mut app = App::new();
-///   app.add_plugin(MirrorPlugin::<Foreign, ForeignMirror>::new());
+///   app.add_plugins(MirrorPlugin::<Foreign, ForeignMirror>::new());
 /// }
 ///
 /// ```

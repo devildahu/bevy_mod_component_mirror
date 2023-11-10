@@ -94,7 +94,7 @@ impl Mirror<Foreign> for ForeignMirror {
 
 fn main() {
   let mut app = App::new();
-  app.add_plugin(MirrorPlugin::<Foreign, ForeignMirror>::new());
+  app.add_plugins(MirrorPlugin::<Foreign, ForeignMirror>::new());
 }
 
 ```
@@ -116,12 +116,14 @@ bevy_mod_component_mirror = { version = "0.10.0", default-features = false }
 
 | bevy | bevy_rapier3d | bevy_mod_component_mirror |
 |------|---------------|---------------------------|
+| 0.12 | 0.23.0 | 0.10.0 |
 | 0.11 | 0.22.0 | 0.10.0 |
 | 0.10 | 0.21.0 | 0.9 |
 | 0.9  | 0.20.0 | 0.7 |
 
 ## Change log
 
+* `0.11`: **BREAKING**: Bump to bevy 0.12 & rapier 0.23
 * `0.10`: **BREAKING**: Bump to bevy 0.11 & rapier 0.22 (Thanks Naomijub on GitHub, See #3)
 * `0.9`: Fix a compilation error which source is currently unknown
 

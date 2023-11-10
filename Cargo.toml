@@ -16,13 +16,13 @@ rapier = ["bevy_rapier3d"]
 default = ["rapier"]
 
 [dependencies]
-bevy_rapier3d = { version = "0.22", optional = true }
-bevy = { version = "0.11", default-features = false }
+bevy_rapier3d = { version = "0.23", optional = true }
+bevy = { version = "0.12", default-features = false }
 
 
 [package.metadata.release]
 pre-release-replacements = [
-  {search="\\| 0.11 \\| 0.22.0 \\| [0-9.]* \\|",replace="| 0.11 | 0.22.0 | {{version}} |",file="Readme.md"},
+  {search="\\| 0.12 \\| 0.23.0 \\| [0-9.]* \\|",replace="| 0.12 | 0.23.0 | {{version}} |",file="Readme.md"},
   {search="bevy_mod_component_mirror = \"[0-9.]*\"",replace="bevy_mod_component_mirror = \"{{version}}\"",file="Readme.md"},
   {search="version = \"[0-9.]*\"",replace="version = \"{{version}}\"",file="Readme.md"},
 ]
