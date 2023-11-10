@@ -3,11 +3,9 @@ mod impulse_joint;
 
 use crate::MirrorPlugin;
 use bevy::prelude::Plugin;
-use bevy_rapier3d::prelude::{
-    AdditionalMassProperties, Collider, ColliderMassProperties, ImpulseJoint,
-};
+use bevy_rapier3d::prelude::{Collider, ImpulseJoint};
 
-pub use collider::{AdditionalMassPropertiesMirror, ColliderMassPropertiesMirror, ColliderMirror};
+pub use collider::ColliderMirror;
 pub use impulse_joint::ImpulseJointMirror;
 
 use self::{
@@ -17,10 +15,6 @@ use self::{
 
 pub type ImpulseJointMirrorPlugin = MirrorPlugin<ImpulseJoint, ImpulseJointMirror>;
 pub type ColliderMirrorPlugin = MirrorPlugin<Collider, ColliderMirror>;
-pub type ColliderMassPropertiesMirrorPlugin =
-    MirrorPlugin<ColliderMassProperties, ColliderMassPropertiesMirror>;
-pub type AdditionalMassPropertiesMirrorPlugin =
-    MirrorPlugin<AdditionalMassProperties, AdditionalMassPropertiesMirror>;
 
 /// Add components mirroring non-reflect rapier components.
 ///
@@ -40,8 +34,6 @@ pub type AdditionalMassPropertiesMirrorPlugin =
 ///
 /// - `ImpulseJoint`
 /// - `Collider` (**some collider shape are not implemented yet!**)
-/// - `ColliderMassProperties`
-/// - `AdditionalMassProperties`
 pub struct RapierMirrorsPlugins;
 
 struct AdditionalReflectionsPlugin;
@@ -57,12 +49,10 @@ impl Plugin for AdditionalReflectionsPlugin {
 
 impl Plugin for RapierMirrorsPlugins {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app
-            .add_plugins((
-                AdditionalMassPropertiesMirrorPlugin::new(),
-                ColliderMassPropertiesMirrorPlugin::new(),
-                ColliderMirrorPlugin::new(),
-                ImpulseJointMirrorPlugin::new(),
-                AdditionalReflectionsPlugin));
+        app.add_plugins((
+            ColliderMirrorPlugin::new(),
+            ImpulseJointMirrorPlugin::new(),
+            AdditionalReflectionsPlugin,
+        ));
     }
 }

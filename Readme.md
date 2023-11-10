@@ -45,8 +45,6 @@ syncs its value with it.
 
 - `ImpulseJoint`
 - `Collider` (**some collider shape are not implemented yet!**)
-- `ColliderMassProperties`
-- `AdditionalMassProperties`
 
 ### Implement your own mirrors
 
