@@ -2,7 +2,10 @@ mod collider;
 mod impulse_joint;
 
 use crate::MirrorPlugin;
-use bevy::prelude::Plugin;
+use bevy::{
+    app::PluginGroupBuilder,
+    prelude::{Plugin, PluginGroup},
+};
 use bevy_rapier3d::prelude::{Collider, ImpulseJoint};
 
 pub use collider::ColliderMirror;
@@ -47,12 +50,11 @@ impl Plugin for AdditionalReflectionsPlugin {
     }
 }
 
-impl Plugin for RapierMirrorsPlugins {
-    fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_plugins((
-            ColliderMirrorPlugin::new(),
-            ImpulseJointMirrorPlugin::new(),
-            AdditionalReflectionsPlugin,
-        ));
+impl PluginGroup for RapierMirrorsPlugins {
+    fn build(self) -> PluginGroupBuilder {
+        PluginGroupBuilder::start::<Self>()
+            .add(ColliderMirrorPlugin::new())
+            .add(ImpulseJointMirrorPlugin::new())
+            .add(AdditionalReflectionsPlugin)
     }
 }
